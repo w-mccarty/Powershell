@@ -86,7 +86,7 @@ if ($Sync_Groups = "yes") {
 }
 
 #detect changes in computers
-if ($Sync_Groups = "yes") {
+if ($Sync_Computers = "yes") {
     $Currentcomputers = Get-ADComputer -SearchBase $ComputerOU -Filter * -Properties DistinguishedName | Select-Object -Property DistinguishedName
     if (Test-path -Path $ComputerCSV) {
         if ((Import-Csv $ComputerCSV) -ne $null) {
