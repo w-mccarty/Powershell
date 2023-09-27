@@ -5,17 +5,23 @@
 #Install in C:\Sync
 #Create dir C:\Sync\Log
 
-#Enable users (yes/no) and set OU
+#Enable users (yes/no), set OU, enable teams webhook (yes/no), set webhook URI
 $Sync_Users = "yes"
 $NewUserOU = "OU=Domain Users,DC=lab,DC=local"
+$UserWebhook = "yes"
+$UserURI = "<YOUR WEBHOOK URI HERE>"
 
-#Enable groups (yes/no) and set OU
+#Enable groups (yes/no), set OU, enable teams webhook (yes/no), set webhook URI
 $Sync_Groups = "yes"
 $GroupOU = "OU=Domain Groups,DC=lab,DC=local"
+$GroupWebhook = "yes"
+$GroupURI = "<YOUR WEBHOOK URI HERE>"
 
-#Enable computers (yes/no) and set OU
+#Enable computers (yes/no), set OU, enable teams webhook (yes/no), set webhook URI
 $Sync_Computers = "no"
 $ComputerOU = "OU=Domain Computers Hybrid,DC=lab,DC=local"
+$ComputerWebhook = "yes"
+$ComputerURI = "<YOUR WEBHOOK URI HERE>"
 
 #log locations
 $ScriptDir = "C:\Sync\Log"
@@ -48,13 +54,20 @@ if ($Sync_Users = "yes") {
     } else {
         $UserSync = "true"
         $Currentusers | Export-Csv -Path $UserCSV
+        $UserArray = [System.Collections.ArrayList]@()
         foreach ($UserDifferenceName in $UserDifference) {
             If ($UserDifferenceName.SideIndicator -eq "=>") {
-                "$($LogDate),Added user,$($UserDifferenceName.UserPrincipalName)"  | Out-File -FilePath $LogFile -Append
+                "$($LogDate),Added AD user,$($UserDifferenceName.UserPrincipalName)"  | Out-File -FilePath $LogFile -Append
+                $UserArrayUpdate = $UserArray.Add("Added user $($UserDifferenceName.UserPrincipalName)<br>")
             } 
             If ($UserDifferenceName.SideIndicator -eq "<=") {
-                "$($LogDate),Deleted user,$($UserDifferenceName.UserPrincipalName)" | Out-File -FilePath $LogFile -Append
+                "$($LogDate),Deleted AD user,$($UserDifferenceName.UserPrincipalName)" | Out-File -FilePath $LogFile -Append
+                $UserArrayUpdate = $UserArray.Add("Deleted user $($UserDifferenceName.UserPrincipalName)<br>")
             }
+        }
+        if ($UserWebhook = "yes") {
+            $UserTextdata = '{"title": "User Change Notification","text": "'+$UserArray+'"}'
+            Invoke-RestMethod -Method post -ContentType 'Application/Json' -Body $UserTextdata -Uri $UserURI
         }
     }
 }
@@ -80,13 +93,20 @@ if ($Sync_Groups = "yes") {
     } else {
         $GroupSync = "true"
         $CurrentGroups | Export-Csv -Path $GroupCSV
+        $GroupArray = [System.Collections.ArrayList]@()
         foreach ($GroupDifferenceName in $GroupDifference) {
             If ($GroupDifferenceName.SideIndicator -eq "=>") {
                 "$($LogDate),Added group,$($GroupDifferenceName.CN)"  | Out-File -FilePath $LogFile -Append
+                $GroupArrayUpdate = $GroupArray.Add("Added group $($GroupDifferenceName.CN)<br>")
             } 
             If ($GroupDifferenceName.SideIndicator -eq "<=") {
                 "$($LogDate),Deleted group,$($GroupDifferenceName.CN)" | Out-File -FilePath $LogFile -Append
+                $GroupArrayUpdate = $GroupArray.Add("Deleted group $($GroupDifferenceName.CN)<br>")
             }
+        }
+        if ($GroupWebhook = "yes") {
+            $GroupTextdata = '{"title": "Group Change Notification","text": "'+$GroupArray+'"}'
+            Invoke-RestMethod -Method post -ContentType 'Application/Json' -Body $GroupTextdata -Uri $GroupURI
         }
     }
 }
@@ -112,13 +132,20 @@ if ($Sync_Computers = "yes") {
     } else {
         $ComputerSync = "true"
         $Currentcomputers | Export-Csv -Path $ComputerCSV
+		$ComputerArray = [System.Collections.ArrayList]@()
         foreach ($ComputerDifferenceDN in $ComputerDifference) {
             If ($ComputerDifferenceDN.SideIndicator -eq "=>") {
                 "$($LogDate),Added computer,$($ComputerDifferenceDN.DistinguishedName)"  | Out-File -FilePath $LogFile -Append
+				$ComputerArrayUpdate = $ComputerArray.Add("Added computer $($ComputerDifferenceDN.DistinguishedName)<br>")
             } 
             if ($ComputerDifferenceDN.SideIndicator -eq "<=") {
                 "$($LogDate),Deleted computer,$($ComputerDifferenceDN.DistinguishedName)" | Out-File -FilePath $LogFile -Append
+				$ComputerArrayUpdate = $ComputerArray.Add("Removed computer $($ComputerDifferenceDN.DistinguishedName)<br>")
             }
+        }
+		if ($ComputerWebhook = "yes") {
+            $ComputerTextdata = '{"title": "Computer Change Notification","text": "'+$ComputerArray+'"}'
+            Invoke-RestMethod -Method post -ContentType 'Application/Json' -Body $ComputerTextdata -Uri $ComputerURI
         }
     }
 }
