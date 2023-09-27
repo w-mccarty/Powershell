@@ -2,27 +2,27 @@
 #
 # https://github.com/w-mccarty
 #
-#Install in C:\Scripts
-#Create dir C:\Scripts\Log
+#Install in C:\Sync
+#Create dir C:\Sync\Log
 
 #Enable users (yes/no) and set OU
 $Sync_Users = "yes"
-$NewUserOU = "OU=LAB Users,DC=lab,DC=internal"
+$NewUserOU = "OU=Domain Users,DC=lab,DC=local"
 
 #Enable groups (yes/no) and set OU
 $Sync_Groups = "yes"
-$GroupOU = "OU=LAB Groups,DC=lab,DC=internal"
+$GroupOU = "OU=Domain Groups,DC=lab,DC=local"
 
 #Enable computers (yes/no) and set OU
-$Sync_Computers = "yes"
-$ComputerOU = "OU=LAB Devices Hybrid,DC=lab,DC=internal"
+$Sync_Computers = "no"
+$ComputerOU = "OU=Domain Computers Hybrid,DC=lab,DC=local"
 
 #log locations
-$ScriptDir = "C:\Scripts\Log"
+$ScriptDir = "C:\Sync\Log"
 $UserCSV = "$($ScriptDir)\Sync-userlist.csv"
 $GroupCSV = "$($ScriptDir)\Sync-grouplist.csv"
 $ComputerCSV = "$($ScriptDir)\Sync-computerlist.csv"
-$LogFile = "$($ScriptDir)\Sync-log.log"
+$LogFile = "$($ScriptDir)\Sync.log"
 
 #dateformat
 $LogDate = Get-Date -Format "yyyy-MM-dd-HH-mm"
@@ -30,6 +30,9 @@ $LogDate = Get-Date -Format "yyyy-MM-dd-HH-mm"
 #detect changes in users
 if ($Sync_Users = "yes") {
     $Currentusers = Get-ADUser -SearchBase $NewUserOU -Filter * -Properties UserPrincipalName | Select-Object -Property UserPrincipalName
+    if ($Currentusers -eq $null) {
+        $Currentusers = ""
+    }
     if (Test-path -Path $UserCSV) {
         if ((Import-Csv $UserCSV) -ne $null) {
             $UserDifferenceCSV = Import-Csv $UserCSV
@@ -59,6 +62,9 @@ if ($Sync_Users = "yes") {
 #detect changes in groups
 if ($Sync_Groups = "yes") {
     $CurrentGroups = Get-ADGroup -SearchBase $GroupOU -Filter * -Properties * | Select-Object -Property CN
+    if ($CurrentGroups -eq $null) {
+        $CurrentGroups = ""
+    }
     if (Test-path -Path $GroupCSV) {
         if ((Import-Csv $GroupCSV) -ne $null) {
             $GroupDifferenceCSV = Import-Csv $GroupCSV
@@ -88,6 +94,9 @@ if ($Sync_Groups = "yes") {
 #detect changes in computers
 if ($Sync_Computers = "yes") {
     $Currentcomputers = Get-ADComputer -SearchBase $ComputerOU -Filter * -Properties DistinguishedName | Select-Object -Property DistinguishedName
+    if ($Currentcomputers -eq $null) {
+        $Currentcomputers = ""
+    }
     if (Test-path -Path $ComputerCSV) {
         if ((Import-Csv $ComputerCSV) -ne $null) {
             $ComputerDifferenceCSV = Import-Csv $ComputerCSV
