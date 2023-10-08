@@ -1,0 +1,35 @@
+#licensed
+$Users = Get-MgUser | Select-Object id,displayname
+Foreach ($User in $Users) {
+    $Userid = $User.Id
+    $Signin = Get-MgUser -UserId $Userid -Select SignInActivity | Select -ExpandProperty SignInActivity
+        if ($Signin.LastSignInDateTime -eq $null) {$Signin = "none"} else {$Signin = $Signin.LastSignInDateTime.ToString("yyyy-MM-dd")}
+    $Enabed = Get-MgUser -UserId $Userid -Select AccountEnabled | Select -ExpandProperty AccountEnabled
+    $Licenses = Get-MgUserLicenseDetail -UserId $Userid | Select-Object SkuId,SkuPartNumber
+    Foreach ($License in $Licenses) {
+        [PsCustomObject]@{
+        Name          = $User.displayname
+        Id            = $User.Id
+        License       = $License.SkuID
+        LicenseName   = $License.SkuPartNumber
+        Signin        = $Signin
+        Enabled       = $Enabed
+        } | Export-CSV C:\test.csv –Append
+    } 
+}
+#unlicensed
+$unlicense = Get-MgUser -Filter 'assignedLicenses/$count eq 0' -ConsistencyLevel eventual -CountVariable unlicensedUserCount -All | Select-Object id,displayname
+Foreach ($unlicensed in $Unlicense) {
+    $UnlicensedId = $unlicensed.Id
+    $ULSignin = Get-MgUser -UserId $UnlicensedId -Select SignInActivity | Select -ExpandProperty SignInActivity
+        if ($ULSignin.LastSignInDateTime -eq $null) {$ULSignin = "none"} else {$ULSignin = $ULSignin.LastSignInDateTime.ToString("yyyy-MM-dd")}
+    $ULEnabed = Get-MgUser -UserId $UnlicensedId -Select AccountEnabled | Select -ExpandProperty AccountEnabled
+    [PsCustomObject]@{
+    Name          = $unlicensed.displayname
+    Id            = $unlicensed.Id
+    License       = "none"
+    LicenseName   = "none"  
+    Signin        = $ULSignin 
+    Enabled       = $ULEnabed
+    } | Export-CSV C:\test.csv –Append
+}
