@@ -1,5 +1,5 @@
 #
-#Connectable moduels - UPDATE THE FOLLOWING 3 Variables with module name, connect script, and URL for reference info
+#Connectable moduels - UPDATE THE FOLLOWING 3 variable lists with module name, connect script, and URL for reference info
 $Modules= 
     "Microsoft.Graph",
     "MicrosoftTeams",
