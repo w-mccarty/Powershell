@@ -28,8 +28,8 @@ $SiteID = "{}"
 $WebID = "{}"
 $WebURL = "https://<TenantName>.sharepoint.com/sites/<SiteName>"  
 $ListID = "{}"
-$SiteName = "test-11-7-23"
-$listTitle = "test"
+$SiteName = ""
+$listTitle = ""
 
 # Give Windows some time to load before getting the email address - useful for VM 
 #Start-Sleep -s 20  
