@@ -1,3 +1,4 @@
+#Modified from & credit to:
 #https://www.cloudpilot.no/blog/List-all-your-syncronized-libraries-in-OneDrive-for-Business-using-PowerShell/
 #
 $ODfBSync = Get-ChildItem -Path Registry::HKEY_CURRENT_USER\SOFTWARE\SyncEngines\Providers\OneDrive
