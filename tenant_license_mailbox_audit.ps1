@@ -67,7 +67,7 @@ foreach ($key in $LicenseTable.Keys) {
     }
     $USERPROPERTIES = [pscustomobject][ordered]@{
             Username              = $key
-            Licenses              = $DataTable.$key
+            Licenses              = $LicenseTable.$key
             Interactive           = $SignInDateTime
             Noninteractive        = $NonInteractiveSignInDateTime
             ForardingSmtp         = $FWD
